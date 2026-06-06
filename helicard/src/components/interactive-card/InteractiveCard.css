@@ -1,0 +1,799 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=IM+Fell+English:ital@0;1&display=swap');
+
+/* ═══════════════════════════════════════
+   SCENE & PERSPECTIVE
+═══════════════════════════════════════ */
+.card-scene {
+  --px: 50%;
+  --py: 50%;
+  --mx: 0;
+  --my: 0;
+  --gold-a: #f5d080;
+  --gold-b: #c9a84c;
+  --gold-c: #8b6914;
+  --dark-a: #1e0e38;
+  --dark-b: #0d0520;
+  --dark-c: #04010f;
+
+  width: 340px;
+  height: 480px;
+  perspective: 1200px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.card-wrapper {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform: rotateY(0deg) rotateX(0deg) scale(1);
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+}
+
+.card-inner {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+/* ═══════════════════════════════════════
+   CARD FACES — SHARED
+═══════════════════════════════════════ */
+.card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 16px;
+}
+
+.card-back {
+  transform: rotateY(180deg);
+}
+
+/* ═══════════════════════════════════════
+   FRONT — GOLDEN BORDER SHELL
+═══════════════════════════════════════ */
+.card-front {
+  background: linear-gradient(
+    145deg,
+    #f8e090 0%,
+    #c9a84c 18%,
+    #edd060 32%,
+    #8b6914 48%,
+    #c9a84c 62%,
+    #f5d080 78%,
+    #c9a84c 100%
+  );
+  padding: 3px;
+  box-sizing: border-box;
+  box-shadow:
+    0 0 28px rgba(201, 168, 76, 0.55),
+    0 0 70px rgba(140, 90, 10, 0.35),
+    0 35px 65px rgba(0, 0, 0, 0.92);
+  animation: card-pulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes card-pulse {
+  from {
+    box-shadow:
+      0 0 28px rgba(201, 168, 76, 0.55),
+      0 0 70px rgba(140, 90, 10, 0.35),
+      0 35px 65px rgba(0, 0, 0, 0.92);
+  }
+  to {
+    box-shadow:
+      0 0 45px rgba(245, 208, 128, 0.75),
+      0 0 100px rgba(200, 140, 20, 0.5),
+      0 35px 65px rgba(0, 0, 0, 0.92);
+  }
+}
+
+/* ═══════════════════════════════════════
+   CARD FRAME — DARK INTERIOR
+═══════════════════════════════════════ */
+.card-frame {
+  width: 100%;
+  height: 100%;
+  /* Fond sombre de fallback — la fresque CardBackground est par-dessus (z-index 1) */
+  background: linear-gradient(170deg, #0c0520 0%, #080318 45%, var(--dark-c) 100%);
+  border-radius: 13px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 5px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Subtle double inner line like real MtG */
+.card-inner-border {
+  position: absolute;
+  inset: 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(201, 168, 76, 0.22);
+  pointer-events: none;
+  z-index: 25;
+}
+
+/* ── HEADER ────────────────────────── */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 5px 8px;
+  background: linear-gradient(90deg, rgba(13,5,32,0.88) 0%, rgba(26,9,58,0.92) 50%, rgba(13,5,32,0.88) 100%);
+  border-radius: 5px;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  box-shadow: inset 0 1px 0 rgba(245, 208, 128, 0.08);
+  position: relative;
+  z-index: 3;
+}
+
+.card-name {
+  font-family: 'Cinzel Decorative', 'Palatino Linotype', Palatino, serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #E8C06A;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 12px rgba(232, 192, 106, 0.65), 0 1px 2px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+
+/* ── MANA SYMBOLS ──────────────────── */
+.card-mana {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.mana {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  font-family: 'Cinzel', serif;
+  font-size: 8.5px;
+  font-weight: 700;
+  border: 1.5px solid rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 1px 3px rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
+}
+
+/* ── Mana HeliFan ──────────────────── */
+.mana-gold {
+  background: radial-gradient(circle at 38% 35%, #f0d070, #c9a020);
+  color: #5a3800;
+  font-size: 10px;
+  text-shadow: none;
+}
+
+.mana-panda {
+  background: radial-gradient(circle at 38% 35%, #a0e8c0, #3aaa70);
+  color: #003820;
+  font-size: 9px;
+}
+
+.mana-creat {
+  background: radial-gradient(circle at 38% 35%, #d080f0, #8020c0);
+  color: #f0e0ff;
+  font-size: 8px;
+  text-shadow: 0 0 4px rgba(200, 128, 255, 0.8);
+}
+
+/* ── ART BOX ───────────────────────── */
+.card-art-wrap {
+  flex: 0 0 158px;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 2px solid rgba(201, 168, 76, 0.55);
+  position: relative;
+  z-index: 2;
+  box-shadow: inset 0 0 0 1px rgba(245, 208, 128, 0.1);
+}
+
+.card-art-inner {
+  width: 100%;
+  height: 100%;
+  /* Parallax via CSS variables — no JS rerender needed */
+  transform:
+    translate(
+      calc(var(--mx, 0) * -7px),
+      calc(var(--my, 0) * -7px)
+    )
+    scale(1.09);
+  transition: transform 0.08s linear;
+  position: relative;
+}
+
+.card-scene:not(:hover) .card-art-inner {
+  transform: translate(0, 0) scale(1.09);
+  transition: transform 0.6s ease;
+}
+
+.card-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Bottom vignette on art */
+.card-art-shadow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 55%, rgba(4, 1, 15, 0.75) 100%);
+  pointer-events: none;
+}
+
+/* Holographic foil overlay */
+.card-holo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 18%,
+    rgba(255, 80, 180, 0.18) 28%,
+    rgba(80, 255, 200, 0.18) 43%,
+    rgba(80, 120, 255, 0.18) 58%,
+    rgba(255, 220, 80, 0.18) 73%,
+    transparent 83%
+  );
+  mix-blend-mode: screen;
+  filter: hue-rotate(calc(var(--mx, 0) * 70deg)) brightness(1.2);
+  opacity: 0.15;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.card-scene:hover .card-holo {
+  opacity: 0.65;
+}
+
+/* ── TYPE LINE ─────────────────────── */
+.card-type-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 4px 8px;
+  background: linear-gradient(90deg, rgba(13,5,32,0.88) 0%, rgba(26,9,58,0.92) 50%, rgba(13,5,32,0.88) 100%);
+  border-radius: 4px;
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  font-family: 'Cinzel', 'Palatino', serif;
+  font-size: 9px;
+  color: #d4a840;
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 3;
+}
+
+.rarity-icon {
+  color: #ff8c00;
+  font-size: 11px;
+  flex-shrink: 0;
+  text-shadow: 0 0 8px rgba(255, 140, 0, 0.9), 0 0 16px rgba(255, 100, 0, 0.5);
+  animation: rarity-glow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes rarity-glow {
+  from { text-shadow: 0 0 8px rgba(255, 140, 0, 0.9), 0 0 16px rgba(255, 100, 0, 0.5); }
+  to   { text-shadow: 0 0 14px rgba(255, 180, 0, 1), 0 0 28px rgba(255, 120, 0, 0.8); }
+}
+
+/* ── TEXT BOX ──────────────────────── */
+.card-text-box {
+  flex: 1;
+  background: linear-gradient(165deg,
+    rgba(10, 4, 22, 0.93) 0%,
+    rgba(5, 2, 14, 0.95) 100%
+  );
+  border-radius: 3px;
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  padding: 7px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 3;
+}
+
+.card-ability {
+  font-family: 'IM Fell English', 'Palatino', Georgia, serif;
+  font-size: 9.5px;
+  line-height: 1.42;
+  color: #bfb09a;
+  margin: 0;
+}
+
+.card-ability em {
+  font-style: italic;
+  color: #E8C06A;
+  font-weight: normal;
+}
+
+.flavor-divider {
+  width: 70%;
+  height: 1px;
+  margin: 1px auto;
+  background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.45), transparent);
+  flex-shrink: 0;
+}
+
+.card-flavor {
+  font-family: 'IM Fell English', 'Palatino', Georgia, serif;
+  font-size: 9px;
+  font-style: italic;
+  line-height: 1.4;
+  color: #A07840;
+  margin: 0;
+}
+
+/* ── FOOTER ────────────────────────── */
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 1px 4px;
+  position: relative;
+  z-index: 3;
+}
+
+.card-artist {
+  font-family: 'EB Garamond', serif;
+  font-size: 7px;
+  color: #5a4a32;
+  letter-spacing: 0.03em;
+}
+
+.card-pt {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #E8C06A;
+  background: linear-gradient(135deg, #1a0a30, #0d0520);
+  border: 1.5px solid rgba(232, 192, 106, 0.7);
+  border-radius: 4px;
+  padding: 1px 7px;
+  text-shadow: 0 0 7px rgba(232, 192, 106, 0.55);
+  box-shadow: inset 0 1px 0 rgba(232, 192, 106, 0.1), 0 0 8px rgba(232, 192, 106, 0.25);
+}
+
+/* ═══════════════════════════════════════
+   REFLECTION OVERLAY
+═══════════════════════════════════════ */
+.card-reflection {
+  position: absolute;
+  inset: 3px;
+  border-radius: 13px;
+  background: radial-gradient(
+    ellipse at var(--px, 50%) var(--py, 50%),
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.04) 38%,
+    transparent 62%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 20;
+}
+
+.card-scene:hover .card-reflection {
+  opacity: 1;
+}
+
+/* ═══════════════════════════════════════
+   PARTICLES
+═══════════════════════════════════════ */
+.card-particles {
+  position: absolute;
+  inset: 3px;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 13px;
+  z-index: 18;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f8e898 0%, #c9a84c 55%, transparent 80%);
+  box-shadow: 0 0 4px rgba(245, 208, 128, 0.8);
+  opacity: 0;
+  animation: particle-float linear infinite;
+  transition: opacity 0.6s ease;
+}
+
+.card-particles.active .particle {
+  opacity: var(--p-opacity, 0.5);
+}
+
+@keyframes particle-float {
+  0%   { transform: translateY(0)    scale(1)   rotate(0deg); }
+  25%  { transform: translateY(-14px) scale(1.3) rotate(90deg); }
+  50%  { transform: translateY(-7px)  scale(0.75) rotate(180deg); }
+  75%  { transform: translateY(-20px) scale(1.1) rotate(270deg); }
+  100% { transform: translateY(0)    scale(1)   rotate(360deg); }
+}
+
+/* ═══════════════════════════════════════
+   BACK FACE
+═══════════════════════════════════════ */
+.card-back-border {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    145deg,
+    #f8e090 0%,
+    #c9a84c 18%,
+    #edd060 32%,
+    #8b6914 48%,
+    #c9a84c 62%,
+    #f5d080 78%,
+    #c9a84c 100%
+  );
+  padding: 3px;
+  border-radius: 16px;
+  box-sizing: border-box;
+  box-shadow:
+    0 0 28px rgba(201, 168, 76, 0.55),
+    0 0 70px rgba(140, 90, 10, 0.3),
+    0 35px 65px rgba(0, 0, 0, 0.92);
+}
+
+.card-back-inner {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(126, 200, 160, 0.08) 0%, transparent 65%),
+    radial-gradient(ellipse at 50% 45%, #1a0838 0%, #0c041e 45%, #040110 100%);
+  border-radius: 13px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Concentric decorative rings */
+.back-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: ring-rotate linear infinite;
+}
+
+.back-ring-1 { width: 220px; height: 220px; border-color: rgba(201, 168, 76, 0.30); animation-duration: 30s; }
+.back-ring-2 { width: 170px; height: 170px; border-color: rgba(201, 168, 76, 0.22); animation-duration: 22s; animation-direction: reverse; }
+.back-ring-3 { width: 128px; height: 128px; border-color: rgba(201, 168, 76, 0.18); animation-duration: 18s; }
+.back-ring-4 { width:  90px; height:  90px; border-color: rgba(201, 168, 76, 0.25); animation-duration: 14s; animation-direction: reverse; }
+
+@keyframes ring-rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Rune circle */
+.back-rune-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+
+.back-rune {
+  position: absolute;
+  display: block;
+  font-family: serif;
+  font-size: 11px;
+  color: rgba(201, 168, 76, 0.6);
+  transform-origin: 50% 88px;
+  width: 14px;
+  height: 14px;
+  text-align: center;
+  line-height: 14px;
+  margin: -7px;
+  animation: rune-flicker 3s ease-in-out infinite alternate;
+  text-shadow: 0 0 6px rgba(201, 168, 76, 0.4);
+}
+
+@keyframes rune-flicker {
+  from { opacity: 0.5; color: rgba(201, 168, 76, 0.6); }
+  to   { opacity: 1;   color: rgba(245, 208, 128, 0.9); text-shadow: 0 0 8px rgba(245, 208, 128, 0.6); }
+}
+
+/* Central hex symbols */
+.back-center-symbol {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-hex {
+  font-size: 54px;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(201, 168, 76, 0.7);
+  text-shadow: none;
+  animation: hex-pulse 4s ease-in-out infinite alternate;
+  position: relative;
+  z-index: 2;
+}
+
+.back-inner-hex {
+  position: absolute;
+  font-size: 32px;
+  color: rgba(201, 168, 76, 0.35);
+  animation: hex-pulse 4s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes hex-pulse {
+  from {
+    -webkit-text-stroke-color: rgba(201, 168, 76, 0.6);
+    filter: drop-shadow(0 0 6px rgba(201, 168, 76, 0.4));
+  }
+  to {
+    -webkit-text-stroke-color: rgba(245, 208, 128, 0.9);
+    filter: drop-shadow(0 0 14px rgba(245, 208, 128, 0.7));
+  }
+}
+
+/* Corner ornaments */
+.back-corner {
+  position: absolute;
+  font-size: 12px;
+  color: rgba(201, 168, 76, 0.55);
+  text-shadow: 0 0 6px rgba(201, 168, 76, 0.4);
+  animation: corner-glow 3s ease-in-out infinite alternate;
+}
+
+.back-corner-tl { top: 14px;  left: 14px;  }
+.back-corner-tr { top: 14px;  right: 14px; }
+.back-corner-bl { bottom: 14px; left: 14px; }
+.back-corner-br { bottom: 14px; right: 14px; }
+
+@keyframes corner-glow {
+  from { color: rgba(201, 168, 76, 0.55); text-shadow: 0 0 6px rgba(201, 168, 76, 0.4); }
+  to   { color: rgba(245, 208, 128, 0.85); text-shadow: 0 0 10px rgba(245, 208, 128, 0.7); }
+}
+
+/* Ambient glow behind everything */
+.back-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(180, 80, 255, 0.12) 0%, transparent 70%);
+  animation: glow-breathe 5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes glow-breathe {
+  from { transform: translate(-50%, -50%) scale(1);   opacity: 0.6; }
+  to   { transform: translate(-50%, -50%) scale(1.35); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════
+   VERSO — TEXTES HELISTORY
+═══════════════════════════════════════ */
+.back-title-block {
+  position: absolute;
+  top: 22px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 5;
+}
+
+.back-main-title {
+  font-family: 'Cinzel Decorative', 'Palatino Linotype', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #E8C06A;
+  letter-spacing: 0.12em;
+  text-shadow:
+    0 0 14px rgba(232, 192, 106, 0.7),
+    0 0 28px rgba(232, 192, 106, 0.35);
+  animation: title-shimmer 4s ease-in-out infinite alternate;
+}
+
+@keyframes title-shimmer {
+  from { text-shadow: 0 0 14px rgba(232, 192, 106, 0.7), 0 0 28px rgba(232, 192, 106, 0.35); }
+  to   { text-shadow: 0 0 22px rgba(245, 220, 130, 0.9), 0 0 44px rgba(232, 192, 106, 0.55); }
+}
+
+.back-subtitle {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  color: rgba(232, 192, 106, 0.6);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.back-mystic-text {
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'IM Fell English', 'Palatino', Georgia, serif;
+  font-size: 10px;
+  font-style: italic;
+  color: rgba(232, 192, 106, 0.55);
+  letter-spacing: 0.06em;
+  z-index: 5;
+  animation: mystic-fade 5s ease-in-out infinite alternate;
+}
+
+@keyframes mystic-fade {
+  from { opacity: 0.6; }
+  to   { opacity: 1; color: rgba(245, 220, 130, 0.75); }
+}
+
+/* ═══════════════════════════════════════
+   CHOIX NARRATIFS
+═══════════════════════════════════════ */
+.card-choices {
+  display: flex;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 3px;
+}
+
+.choice-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 2px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(var(--c-color, #E8C06A), 0.35);
+  border-color: var(--c-color, #E8C06A);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+  opacity: 0.75;
+  font-family: inherit;
+}
+
+/* Use a wrapper trick since CSS var in border-color needs direct property */
+.choice-btn {
+  border: 1px solid;
+  border-color: color-mix(in srgb, var(--c-color, #E8C06A) 40%, transparent);
+}
+
+.choice-btn:hover {
+  background: color-mix(in srgb, var(--c-color, #E8C06A) 12%, transparent);
+  border-color: color-mix(in srgb, var(--c-color, #E8C06A) 70%, transparent);
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.choice-emoji {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.choice-label {
+  font-family: 'Cinzel', serif;
+  font-size: 6.5px;
+  color: var(--c-color, #E8C06A);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* Message révélé */
+.choice-reveal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border: 1px solid;
+  border-color: color-mix(in srgb, var(--c-color, #E8C06A) 45%, transparent);
+  border-radius: 4px;
+  padding: 6px 7px;
+  background: color-mix(in srgb, var(--c-color, #E8C06A) 6%, transparent);
+  animation: reveal-in 0.25s ease;
+}
+
+@keyframes reveal-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.choice-reveal-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.choice-reveal-emoji {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.choice-reveal-title {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  color: var(--c-color, #E8C06A);
+  letter-spacing: 0.06em;
+  flex: 1;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--c-color, #E8C06A) 50%, transparent);
+}
+
+.choice-back-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 8px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color 0.2s;
+  font-family: inherit;
+}
+
+.choice-back-btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.choice-reveal-text {
+  font-family: 'IM Fell English', 'Palatino', Georgia, serif;
+  font-size: 8.5px;
+  font-style: italic;
+  line-height: 1.45;
+  color: #c8b890;
+  margin: 0;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════
+   HINT SOUS LA CARTE
+═══════════════════════════════════════ */
+.card-hint {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  color: #5a3a0a;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin: 14px 0 0;
+  text-align: center;
+  animation: hintPulse 2.5s ease-in-out infinite;
+  user-select: none;
+  pointer-events: none;
+}
+
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.35; }
+  50%       { opacity: 0.85; }
+}
