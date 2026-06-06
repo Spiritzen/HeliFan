@@ -74,7 +74,7 @@ export default function CardModal({ isOpen, onClose }: CardModalProps) {
         <div className="modal-card-side">
           <div className="modal-card-visual">
             <img
-              src="/cards/future-choice/character.png"
+              src={`${import.meta.env.BASE_URL}cards/future-choice/character.png`}
               alt="HeliFan"
               className="modal-portrait"
             />

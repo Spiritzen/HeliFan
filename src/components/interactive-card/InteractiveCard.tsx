@@ -82,7 +82,7 @@ export default function InteractiveCard() {
                 <div className="card-art-wrap">
                   <div className="card-art-inner">
                     <img
-                      src="/cards/future-choice/character.png"
+                      src={`${import.meta.env.BASE_URL}cards/future-choice/character.png`}
                       alt="HeliFan"
                       className="card-art-img"
                     />
