@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
 
-.app-stage {
+.app-container {
   width: 100%;
-  min-height: 100svh;
+  min-height: 100vh;
   background: radial-gradient(ellipse at 50% 35%, #120828 0%, #06010f 55%, #000005 100%);
   display: flex;
   flex-direction: column;
@@ -14,7 +14,6 @@
   overflow: hidden;
 }
 
-/* Soft ambient light behind card */
 .stage-ambient {
   position: absolute;
   top: 50%;

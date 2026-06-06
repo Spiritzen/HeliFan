@@ -3,7 +3,7 @@ import './App.css'
 
 export default function App() {
   return (
-    <div className="app-stage">
+    <div className="app-container">
       <div className="stage-ambient" />
       <header className="stage-header">
         <h1 className="stage-title">HeliFan</h1>

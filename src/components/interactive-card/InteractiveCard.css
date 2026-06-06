@@ -15,8 +15,8 @@
   --dark-b: #0d0520;
   --dark-c: #04010f;
 
-  width: 340px;
-  height: 480px;
+  width: clamp(260px, 80vw, 340px);
+  height: clamp(368px, 113vw, 480px);
   perspective: 1200px;
   cursor: pointer;
   user-select: none;
