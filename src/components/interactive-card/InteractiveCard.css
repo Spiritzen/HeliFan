@@ -231,11 +231,15 @@
 }
 
 .card-art-img {
-  display: block;
-  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
   height: 100%;
+  width: auto;
+  min-width: 100%;
   object-fit: cover;
-  object-position: 65% 20%;
+  object-position: 58% center;
   filter: drop-shadow(0 0 20px rgba(200, 100, 0, 0.4));
 }
 
