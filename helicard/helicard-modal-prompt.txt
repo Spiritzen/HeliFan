@@ -1,0 +1,589 @@
+PROMPT CLAUDE CODE — MODALE DE DÉTAIL CARTE HELIFAN
+=====================================================
+
+CONTEXTE
+--------
+La carte fantasy HeliFan existe et tourne sur localhost:5173.
+Le problème : la carte est trop petite, le texte est illisible.
+
+SOLUTION : Au clic sur la carte, une modale s'ouvre.
+Elle affiche une version agrandie (80% écran) de la carte
+avec tout le contenu lisible, les effets 3D actifs,
+et une zone de texte détaillée à côté.
+
+
+COMPORTEMENT SOUHAITÉ
+---------------------
+1. La carte principale sur la page reste à sa taille actuelle
+   (petite, mystérieuse, avec le tilt 3D au hover)
+
+2. Au CLIC sur la carte → modale plein écran s'ouvre
+   - Fond : overlay sombre rgba(0,0,0,0.88) avec blur backdrop-filter: blur(8px)
+   - Animation d'ouverture : scale(0.85) → scale(1) + opacity 0→1, durée 0.35s ease-out
+   - Touche Échap ou clic sur le fond → ferme la modale
+
+3. Dans la modale : disposition en deux colonnes
+   Colonne gauche (45%) : la carte agrandie avec tilt 3D actif
+   Colonne droite (55%) : panneau de détails scrollable
+
+
+ARCHITECTURE DES FICHIERS
+--------------------------
+Créer :  src/components/interactive-card/CardModal.tsx
+Créer :  src/components/interactive-card/CardModal.css
+Modifier : InteractiveFantasyCard.tsx (ajouter onClick + état isModalOpen)
+
+
+COMPOSANT CardModal.tsx
+-----------------------
+
+```tsx
+import { useEffect, useRef } from 'react';
+import type { FantasyCard } from './types';
+import './CardModal.css';
+
+interface CardModalProps {
+  card: FantasyCard;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function CardModal({ card, isOpen, onClose }: CardModalProps) {
+  // Fermer avec Échap
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [isOpen, onClose]);
+
+  // Bloquer le scroll du body quand la modale est ouverte
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="modal-overlay"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Détails de la carte HeliFan"
+    >
+      <div
+        className="modal-container"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Bouton fermer */}
+        <button className="modal-close" onClick={onClose} aria-label="Fermer">
+          ✕
+        </button>
+
+        {/* Colonne gauche : carte agrandie */}
+        <div className="modal-card-side">
+          {/* Réutiliser le visuel de la carte en grand
+              OU afficher une version simplifiée agrandie */}
+          <div className="modal-card-visual">
+            <img
+              src="/cards/future-choice/character.png"
+              alt="HeliFan"
+              className="modal-portrait"
+            />
+            <div className="modal-card-glow" />
+          </div>
+        </div>
+
+        {/* Colonne droite : détails lisibles */}
+        <div className="modal-detail-side">
+          
+          {/* En-tête */}
+          <div className="modal-header">
+            <div className="modal-card-number">✦ Héroïne Légendaire · N°01 ✦</div>
+            <h2 className="modal-title">HeliFan</h2>
+            <div className="modal-type-line">
+              Créature Légendaire — Humaine Prophétesse
+            </div>
+          </div>
+
+          {/* Description principale */}
+          <div className="modal-section">
+            <p className="modal-description">
+              Petite en taille, immense en lumière. HeliFan avance avec la
+              douceur d'un panda et le courage d'une exploratrice. Sa curiosité
+              est sa boussole. Son amour, son pouvoir.
+            </p>
+          </div>
+
+          {/* Capacités */}
+          <div className="modal-section">
+            <h3 className="modal-section-title">Capacités</h3>
+            <ul className="modal-abilities">
+              <li>
+                <span className="ability-name">Curiosité infinie</span>
+                <span className="ability-desc">
+                  Au début de chaque tour, révèle la prochaine carte du destin.
+                </span>
+              </li>
+              <li>
+                <span className="ability-name">Amour rayonnant</span>
+                <span className="ability-desc">
+                  Les alliés adjacents gagnent +1 en courage.
+                </span>
+              </li>
+              <li>
+                <span className="ability-name">Pas de panda</span>
+                <span className="ability-desc">
+                  Insaisissable. Ne peut pas être bloquée par la peur.
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Flavor text */}
+          <div className="modal-section modal-flavor">
+            <p>
+              « Chaque chemin commence par une question.
+              Elle, elle ose la poser. »
+            </p>
+          </div>
+
+          {/* Choix narratifs */}
+          <div className="modal-section">
+            <h3 className="modal-section-title">Choisir son chemin</h3>
+            <div className="modal-choices">
+              <button className="modal-choice-btn modal-choice-learn">
+                📚 Apprendre
+              </button>
+              <button className="modal-choice-btn modal-choice-love">
+                🐼 Aimer
+              </button>
+              <button className="modal-choice-btn modal-choice-create">
+                ✨ Créer
+              </button>
+            </div>
+            {/* Zone message choix — affichée dynamiquement */}
+            <div className="modal-choice-message" id="modalChoiceMsg" />
+          </div>
+
+          {/* Footer stats */}
+          <div className="modal-footer">
+            <span className="modal-brand">Helistory © — HeliFan</span>
+            <span className="modal-stats">1 / 56</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+Ajouter la logique des choix dans CardModal.tsx :
+- État local : `const [selectedChoice, setSelectedChoice] = useState<string | null>(null)`
+- Au clic sur un bouton choix → afficher le message correspondant dans modal-choice-message
+- Messages identiques à ceux de cardData.ts
+
+
+CSS : CardModal.css
+-------------------
+
+/* Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Conteneur principal */
+.modal-container {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  width: min(900px, 95vw);
+  max-height: 90vh;
+  background: linear-gradient(145deg, #100500 0%, #1A0800 50%, #0D0300 100%);
+  border: 1px solid #8B6914;
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow:
+    0 0 0 1px #3a2200,
+    0 40px 80px rgba(0, 0, 0, 0.9),
+    0 0 60px rgba(180, 100, 0, 0.12);
+  animation: modalSlideIn 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+  overflow: hidden;
+}
+
+@keyframes modalSlideIn {
+  from { transform: scale(0.88); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* Bouton fermer */
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: 1px solid #5A3A0A;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  color: #8B6914;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10;
+}
+.modal-close:hover {
+  border-color: #E8C06A;
+  color: #E8C06A;
+  background: rgba(139, 105, 20, 0.1);
+}
+
+/* Colonne gauche — portrait */
+.modal-card-side {
+  flex: 0 0 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-card-visual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #8B6914;
+  box-shadow:
+    0 0 0 1px #3a2200,
+    0 0 40px rgba(180, 100, 0, 0.2),
+    inset 0 0 30px rgba(0,0,0,0.6);
+}
+
+.modal-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  filter: drop-shadow(0 0 20px rgba(200, 100, 0, 0.4));
+}
+
+.modal-card-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 70% 40% at 50% 80%,
+    rgba(139, 105, 20, 0.3) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Colonne droite — détails */
+.modal-detail-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: #5A3A0A transparent;
+}
+
+.modal-detail-side::-webkit-scrollbar {
+  width: 4px;
+}
+.modal-detail-side::-webkit-scrollbar-thumb {
+  background: #5A3A0A;
+  border-radius: 2px;
+}
+
+/* En-tête */
+.modal-card-number {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  color: #8B6914;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.modal-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(22px, 3vw, 32px);
+  color: #E8C06A;
+  letter-spacing: 2px;
+  text-shadow: 0 0 30px rgba(255, 180, 0, 0.4);
+  margin: 0 0 8px;
+}
+
+.modal-type-line {
+  display: inline-block;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: #C09040;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: rgba(139, 105, 20, 0.12);
+  border: 1px solid rgba(139, 105, 20, 0.3);
+  border-radius: 3px;
+  padding: 4px 10px;
+}
+
+/* Sections */
+.modal-section {
+  border-top: 1px solid rgba(139, 105, 20, 0.2);
+  padding-top: 1rem;
+}
+
+.modal-section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: #8B6914;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+}
+
+.modal-description {
+  font-family: 'IM Fell English', serif;
+  font-size: 15px;
+  color: #C09060;
+  line-height: 1.7;
+}
+
+/* Capacités */
+.modal-abilities {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.modal-abilities li {
+  font-family: 'IM Fell English', serif;
+  font-size: 14px;
+  color: #B08040;
+  line-height: 1.5;
+}
+
+.ability-name {
+  font-style: italic;
+  color: #E8C06A;
+  margin-right: 0.4rem;
+}
+
+.ability-desc {
+  color: #C09060;
+}
+
+/* Flavor text */
+.modal-flavor p {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: #8B6914;
+  line-height: 1.7;
+  border-left: 2px solid #5A3A0A;
+  padding-left: 1rem;
+}
+
+/* Choix */
+.modal-choices {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.modal-choice-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px solid #5A3A0A;
+  border-radius: 6px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: #C09040;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-transform: uppercase;
+}
+
+.modal-choice-btn:hover,
+.modal-choice-btn.active {
+  background: rgba(139, 105, 20, 0.15);
+  border-color: #E8C06A;
+  color: #E8C06A;
+  box-shadow: 0 0 14px rgba(232, 192, 106, 0.2);
+}
+
+.modal-choice-learn.active  { border-color: #E8C06A; color: #E8C06A; }
+.modal-choice-love.active   { border-color: #7EC8A0; color: #7EC8A0; }
+.modal-choice-create.active { border-color: #C080E0; color: #C080E0; }
+
+.modal-choice-message {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: #C09060;
+  line-height: 1.7;
+  min-height: 0;
+  transition: all 0.3s;
+}
+
+.modal-choice-message:not(:empty) {
+  border-top: 1px solid rgba(139, 105, 20, 0.2);
+  padding-top: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Footer */
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(139, 105, 20, 0.2);
+  padding-top: 1rem;
+  margin-top: auto;
+}
+
+.modal-brand {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  color: #5A3A0A;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.modal-stats {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #E8C06A;
+  border: 1px solid #8B6914;
+  border-radius: 4px;
+  padding: 4px 12px;
+  text-shadow: 0 0 10px rgba(232, 192, 106, 0.4);
+}
+
+/* RESPONSIVE MOBILE */
+@media (max-width: 640px) {
+  .modal-container {
+    flex-direction: column;
+    padding: 1.5rem 1.2rem;
+    max-height: 95vh;
+  }
+
+  .modal-card-side {
+    flex: 0 0 auto;
+    max-height: 35vh;
+  }
+
+  .modal-card-visual {
+    aspect-ratio: auto;
+    max-height: 35vh;
+  }
+
+  .modal-portrait {
+    object-position: center 20%;
+  }
+
+  .modal-title {
+    font-size: 20px;
+  }
+}
+
+/* Accessibilité */
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay,
+  .modal-container {
+    animation: none;
+  }
+}
+
+
+MODIFICATION DE InteractiveFantasyCard.tsx
+------------------------------------------
+Ajouter en haut du composant :
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+Entourer la carte d'un bouton ou ajouter onClick sur le wrapper :
+
+  <div
+    className="card-wrapper"
+    ref={wrapperRef}
+    onClick={() => setIsModalOpen(true)}
+    role="button"
+    tabIndex={0}
+    aria-label="Cliquer pour voir les détails de la carte HeliFan"
+    onKeyDown={e => { if (e.key === 'Enter') setIsModalOpen(true); }}
+  >
+
+Ajouter à la fin du JSX, avant la fermeture du composant :
+
+  <CardModal
+    card={card}
+    isOpen={isModalOpen}
+    onClose={() => setIsModalOpen(false)}
+  />
+
+Retirer ou déplacer les boutons "Révéler le choix" et "Retourner"
+dans la modale (ils ne sont plus nécessaires sur la petite carte).
+Garder uniquement un texte hint discret sous la carte :
+  <p className="card-hint">Cliquer pour explorer</p>
+
+Style du hint :
+  .card-hint {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    color: #5A3A0A;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 12px;
+    animation: hintPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes hintPulse {
+    0%, 100% { opacity: 0.4; }
+    50%       { opacity: 0.9; }
+  }
+
+
+VÉRIFICATIONS FINALES
+---------------------
+1. npm run dev — aucune erreur TypeScript ni console
+2. La carte principale reste petite sur la page
+3. Clic sur la carte → modale s'ouvre avec animation scale
+4. Le texte dans la modale est lisible (font-size 14-15px minimum)
+5. Les 3 boutons de choix fonctionnent dans la modale
+6. Clic sur le fond sombre → ferme la modale
+7. Touche Échap → ferme la modale
+8. Le scroll body est bloqué quand la modale est ouverte
+9. Sur mobile (< 640px) → disposition en colonne, portrait en haut
+10. npm run build — aucune erreur

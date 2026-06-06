@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(Get-Content \"C:\\\\Users\\\\Admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--CreaSite-HeliFan\\\\86398214-b155-4448-8bbe-4e8455e70a1d\\\\tasks\\\\b680e69e2.output\" -Tail 30)",
+      "Bash(npx tsc *)",
+      "Bash(start *)"
+    ]
+  }
+}

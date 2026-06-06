@@ -1,0 +1,343 @@
+PROMPT CLAUDE CODE — ARRIÈRE-PLAN GREC PARALLAXE
+Projet : helicard (Vite + React + TypeScript)
+Fichier cible : src/components/interactive-card/CardBackground.tsx + CardBackground.css
+=======================================================================
+
+CONTEXTE
+--------
+La carte fantasy interactive existe déjà. Le portrait de la créatrice
+(character.png, fond transparent) est affiché par-dessus les couches.
+
+Je veux créer un arrière-plan original et épique entièrement en SVG + CSS,
+sans image externe, inspiré de :
+- Les travaux d'Hercule (12 travaux : Némée, Hydre, Cerbère, Augias...)
+- L'art grec antique (céramique à figures noires/rouges, frises de vases)
+- Les peintures néoclassiques (style David, Ingres, Girodet)
+- Les mosaïques romaines
+- Les temples grecs (colonnes, frontons, méandres)
+
+L'arrière-plan doit donner l'impression d'une FRESQUE VIVANTE et MAGIQUE.
+Ce n'est pas une image statique : il y a plusieurs couches animées
+en parallaxe qui réagissent au mouvement de la souris.
+
+
+STYLE VISUEL CIBLE
+------------------
+- Palette : noir profond (#080300), brun/sépia (#3D1A00), or antique (#C8960A),
+  bronze (#8B4513), ocre (#B8860B), ivoire (#F5DEB3), rouge grec (#8B1A1A)
+- Ambiance : parchemin brûlé, fresque ancienne, temple en ruines
+- Pas de couleurs vives ou modernes
+- Tout en SVG inline (pas d'images PNG/WebP)
+- Texture de grain légère via SVG feTurbulence
+
+
+ARCHITECTURE DES COUCHES (de l'arrière vers l'avant)
+-----------------------------------------------------
+Chaque couche a une valeur depth différente pour le parallaxe.
+Plus depth est élevé, plus la couche se déplace vite avec la souris.
+
+COUCHE 1 — Fond de ciel nocturne (depth: 2)
+  - Fond dégradé vertical : noir (#080300) → brun très sombre (#1A0800)
+  - 8 à 12 étoiles/points lumineux très discrets (cercles blancs opacity 0.15)
+  - Une lune stylisée en bas à droite, style grec (croissant géométrique)
+
+COUCHE 2 — Frise de méandres grecs (depth: 5)
+  - Bandeau horizontal en bas de la couche (~15% de la hauteur)
+  - Motif méandre grec (clé grecque) répété : SVG path géométrique
+  - Couleur or antique (#8B6914) sur fond transparent
+  - Opacity 0.35
+  - Le motif méandre SVG path ressemble à :
+    M0,20 L10,20 L10,10 L20,10 L20,0 L30,0 L30,10 L40,10
+    (à répéter avec <pattern> SVG)
+
+COUCHE 3 — Ruines de temple grec (depth: 8)
+  - Silhouette de colonnes dorique en arrière-plan, très sombres
+  - 3 à 5 colonnes de hauteurs différentes
+  - Style : rectangles effilés avec chapiteau simplifié
+  - Couleur : brun très sombre (#1A0A00) opacity 0.6
+  - Quelques blocs de pierre effondrés au sol (rectangles)
+  - Pas de détail fin, juste des silhouettes
+
+COUCHE 4 — Scène de vase grec (depth: 14)
+  Reproduire le style CÉRAMIQUE À FIGURES ROUGES/NOIRES :
+  - Fond de couleur terre cuite (#8B3A00) très sombre, opacity 0.25
+  - Silhouettes de personnages stylisés (style vase grec) en SVG path :
+    * Un héros (Hercule) tenant une massue, cape au vent
+    * Un monstre/lion couché à ses pieds
+    * Une amphore stylisée sur le côté
+  - Lignes fines, style gravure, sans remplissage complexe
+  - Couleur des figures : or sombre (#8B6914) opacity 0.5
+  - Encadré par 2 colonnes fines verticales style vase grec
+
+COUCHE 5 — Scène néoclassique centrale (depth: 20)
+  Reproduire le style PEINTURE NÉOCLASSIQUE :
+  - Grande scène centrale occupant 60% de la largeur, centrée
+  - Style : dessin au trait épuré, rappelant une gravure d'époque
+  - Composition : Hercule de profil (silhouette SVG musculeux, drapé)
+    debout sur un rocher, bras levé vers le ciel
+  - À sa gauche : l'Hydre de Lerne (serpent à 3 têtes, stylisé)
+  - En arrière : arche de temple (2 colonnes + linteau)
+  - Couleurs : ivoire (#E8D5A0) opacity 0.18 pour les contours
+  - Trait fin (stroke-width 0.8), fill none ou très transparent
+
+COUCHE 6 — Éléments de mosaïque (depth: 6)
+  - Pattern de petits carreaux (mosaïque) dans les coins
+  - Motifs géométriques : losanges, grecques, palmettes
+  - Couleur or/bronze très discret opacity 0.12
+  - Uniquement dans les 4 coins (25% de surface max)
+
+COUCHE 7 — Lueur magique centrale (depth: 0)
+  - Radial-gradient centré, couleur or chaud
+  - `radial-gradient(ellipse 50% 60% at 50% 45%, rgba(200,150,10,0.08) 0%, transparent 70%)`
+  - Pulse lent en CSS animation (opacity 0.06 → 0.14 → 0.06, 4s ease-in-out infinite)
+  - Cette couche ne bouge PAS avec le parallaxe (depth 0)
+
+COUCHE 8 — Vignette et bords brunis (depth: 0)
+  - Radial-gradient assombrissant les bords
+  - `radial-gradient(ellipse 85% 85% at 50% 50%, transparent 40%, rgba(0,0,0,0.75) 100%)`
+  - Effet parchemin brûlé sur les coins : 4 radial-gradients dans les coins
+  - Ne bouge pas avec le parallaxe
+
+
+COMPOSANT À CRÉER : CardBackground.tsx
+---------------------------------------
+
+```tsx
+import React, { useRef } from 'react';
+import './CardBackground.css';
+
+interface CardBackgroundProps {
+  mouseX: number;  // valeur normalisée 0-1
+  mouseY: number;  // valeur normalisée 0-1
+}
+
+export function CardBackground({ mouseX, mouseY }: CardBackgroundProps) {
+  // Calculer les translations pour chaque couche
+  // depth 2  → translate(dx*2px, dy*2px)
+  // depth 5  → translate(dx*5px, dy*5px)
+  // etc.
+  // dx = (mouseX - 0.5), dy = (mouseY - 0.5)
+  
+  const dx = (mouseX - 0.5);
+  const dy = (mouseY - 0.5);
+  
+  const t = (depth: number) => ({
+    transform: `translate3d(${dx * depth}px, ${dy * depth}px, 0px)`
+  });
+
+  return (
+    <div className="card-bg-container">
+      
+      {/* Couche 1 - Ciel */}
+      <div className="bg-layer bg-sky" style={t(2)}>
+        <svg ...>...</svg>
+      </div>
+      
+      {/* Couche 2 - Méandres */}
+      <div className="bg-layer bg-meander" style={t(5)}>
+        <svg ...>...</svg>
+      </div>
+      
+      {/* Couche 3 - Colonnes/Ruines */}
+      <div className="bg-layer bg-ruins" style={t(8)}>
+        <svg ...>...</svg>
+      </div>
+      
+      {/* Couche 4 - Vase grec */}
+      <div className="bg-layer bg-vase" style={t(14)}>
+        <svg ...>...</svg>
+      </div>
+      
+      {/* Couche 5 - Scène néoclassique */}
+      <div className="bg-layer bg-neoclassic" style={t(20)}>
+        <svg ...>...</svg>
+      </div>
+      
+      {/* Couche 6 - Mosaïque */}
+      <div className="bg-layer bg-mosaic" style={t(6)}>
+        <svg ...>...</svg>
+      </div>
+      
+      {/* Couche 7 - Lueur magique (statique) */}
+      <div className="bg-layer bg-glow" />
+      
+      {/* Couche 8 - Vignette (statique) */}
+      <div className="bg-layer bg-vignette" />
+      
+    </div>
+  );
+}
+```
+
+IMPORTANT : Toutes les couches SVG doivent avoir :
+  width="100%" height="100%" viewBox="0 0 340 510" preserveAspectRatio="xMidYMid slice"
+  (340x510 = dimensions de la carte au ratio 2:3)
+
+
+INTÉGRATION DANS InteractiveFantasyCard.tsx
+-------------------------------------------
+Dans la boucle RAF (requestAnimationFrame) de useCardTilt,
+passer mouseX et mouseY au composant CardBackground via un state
+OU mieux : utiliser une ref partagée et mettre à jour directement
+les style.transform de chaque couche bg depuis le RAF.
+
+Méthode recommandée (sans rerender) :
+  Ajouter des refs pour chaque couche bg dans InteractiveFantasyCard.tsx
+  Dans le RAF, calculer et appliquer les transforms directement :
+
+```ts
+const dx = currentMX - 0.5;
+const dy = currentMY - 0.5;
+if (bgSkyRef.current)       bgSkyRef.current.style.transform       = `translate3d(${dx*2}px, ${dy*2}px, 0)`;
+if (bgMeanderRef.current)   bgMeanderRef.current.style.transform   = `translate3d(${dx*5}px, ${dy*5}px, 0)`;
+if (bgRuinsRef.current)     bgRuinsRef.current.style.transform     = `translate3d(${dx*8}px, ${dy*8}px, 0)`;
+if (bgVaseRef.current)      bgVaseRef.current.style.transform      = `translate3d(${dx*14}px, ${dy*14}px, 0)`;
+if (bgNeoRef.current)       bgNeoRef.current.style.transform       = `translate3d(${dx*20}px, ${dy*20}px, 0)`;
+if (bgMosaicRef.current)    bgMosaicRef.current.style.transform    = `translate3d(${dx*6}px, ${dy*6}px, 0)`;
+```
+
+Placer CardBackground ENTRE layer-bg (z-index:1) et layer-character (z-index:3).
+Donner à CardBackground un z-index: 2.
+
+
+CSS : CardBackground.css
+------------------------
+
+.card-bg-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  z-index: 2;
+}
+
+.bg-layer {
+  position: absolute;
+  inset: -15px;   /* overflow pour que le parallaxe ne montre pas les bords */
+  will-change: transform;
+}
+
+/* Pulse de la lueur */
+@keyframes bgPulse {
+  0%, 100% { opacity: 0.06; }
+  50%       { opacity: 0.14; }
+}
+
+.bg-glow {
+  background: radial-gradient(
+    ellipse 50% 60% at 50% 45%,
+    rgba(200,150,10,0.12) 0%,
+    transparent 70%
+  );
+  animation: bgPulse 4s ease-in-out infinite;
+  inset: 0;
+}
+
+.bg-vignette {
+  background:
+    radial-gradient(ellipse 85% 85% at 50% 50%, transparent 40%, rgba(0,0,0,0.75) 100%),
+    radial-gradient(ellipse 30% 30% at 0% 0%,   rgba(0,0,0,0.6) 0%, transparent 50%),
+    radial-gradient(ellipse 30% 30% at 100% 0%,  rgba(0,0,0,0.6) 0%, transparent 50%),
+    radial-gradient(ellipse 30% 30% at 0% 100%,  rgba(0,0,0,0.5) 0%, transparent 50%),
+    radial-gradient(ellipse 30% 30% at 100% 100%,rgba(0,0,0,0.5) 0%, transparent 50%);
+  inset: 0;
+}
+
+/* Désactiver le parallaxe si prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .bg-layer { transform: none !important; }
+  .bg-glow  { animation: none; }
+}
+
+
+DÉTAIL DES SVG À GÉNÉRER
+-------------------------
+
+--- SVG MÉANDRE GREC (bg-meander) ---
+Utiliser un <defs><pattern> SVG pour répéter le motif clé grecque.
+Motif de base (cellule 30x30) :
+  M5,25 L5,15 L15,15 L15,5 L25,5 L25,15 L20,15 L20,20 L25,20
+  stroke="#8B6914" stroke-width="1" fill="none"
+Appliquer ce pattern sur un rect en bas de la zone (y=430, height=60).
+Ajouter une ligne horizontale fine au-dessus : y=432, opacity 0.4.
+
+--- SVG COLONNES DORIQUES (bg-ruins) ---
+5 colonnes de largeur 18-22px, hauteur 180-280px (variée),
+positionnées à x = 20, 70, 160, 250, 300 depuis le bas de la carte.
+Chaque colonne :
+  - Fût : rect arrondi (rx=2), fill="#0D0600", stroke="#2A1500" stroke-width="0.5"
+  - Chapiteau : rect plus large en haut (h=8, w+6), même style
+  - Abaque : rect très plat (h=4, w+10)
+Sol : line y1=430 x1=0 x2=340, stroke="#2A1500" stroke-width="1"
+Blocs effondrés : 3-4 petits rects (12x6, 20x8) sur le sol, rotation légère
+
+--- SVG FIGURES SUR VASE (bg-vase) ---
+Fond : rect 340x510 fill="#8B3A00" opacity="0.15"
+Hercule (silhouette, profil gauche, x=80, y=200) :
+  - Corps : path simplifié, silhouette musclée de profil
+  - Tête casquée : cercle + rect pour le casque
+  - Bras levé avec massue : line + cercle
+  - Drapé/cape : path triangulaire derrière
+  - fill="#8B6914" opacity="0.45"
+Lion de Némée (x=160, y=310, couché) :
+  - Corps ovale + tête avec crinière (cercle + rayons)
+  - fill="#6B4A10" opacity="0.35"
+Amphore (x=260, y=250) :
+  - 2 courbes symétriques + col + base
+  - stroke="#8B6914" stroke-width="1" fill="none" opacity="0.4"
+Bordures vase : 2 lignes verticales fines x=30 et x=310, y=150 à y=420
+
+--- SVG SCÈNE NÉOCLASSIQUE (bg-neoclassic) ---
+Tout en stroke uniquement (fill="none"), trait fin (stroke-width="0.7")
+stroke="#D4B870" opacity="0.16"
+
+Arc de temple central (x=80 à x=260, y=50 à y=350) :
+  - 2 colonnes (rects 14x200, x=90 et x=236, y=150)
+  - Linteau (rect 160x8, x=88, y=150)
+  - Fronton triangulaire au-dessus
+
+Hercule héroïque (silhouette centrale, x=145 à x=195) :
+  - Debout sur un rocher (forme irrégulière en bas)
+  - Torse nu, musculeux, de profil
+  - Bras droit levé vers le ciel, poing fermé
+  - Bras gauche tendu avec bouclier circulaire
+  - Drapé flottant derrière (S-curve)
+  - Jambes en position de marche héroïque
+
+Hydre de Lerne (à gauche, x=30 à x=100, y=250 à y=380) :
+  - Corps serpentin (S-curve épaisse)
+  - 3 têtes de serpent (ovales avec bouche ouverte)
+  - Chaque tête au bout d'un cou sinueux
+
+Sol : ligne courbe y≈390, quelques rochers (ellipses)
+Fond : quelques étoiles minuscules (cercles r=0.8)
+
+--- SVG MOSAÏQUE COINS (bg-mosaic) ---
+4 groupes dans les coins (50x50px chacun) :
+  Motif : petits losanges (4x4px) arrangés en grille diagonale
+  stroke="#8B6914" stroke-width="0.3" fill="none" opacity="0.12"
+  Coin TL : x=0-50, y=0-50
+  Coin TR : x=290-340, y=0-50
+  Coin BL : x=0-50, y=460-510
+  Coin BR : x=290-340, y=460-510
+
+
+VÉRIFICATIONS FINALES
+---------------------
+1. npm run dev — aucune erreur TypeScript
+2. L'arrière-plan est visible DERRIÈRE le portrait (character.png)
+3. Bouger la souris sur la carte → les couches bg bougent à des vitesses différentes
+4. La couche Hercule (depth 20) doit bouger nettement plus que les colonnes (depth 8)
+5. La lueur centrale pulse doucement
+6. Les bords sont assombris (vignette)
+7. Le portrait reste lisible par-dessus tout ça
+8. npm run build — aucune erreur
+
+NOTE IMPORTANTE
+---------------
+Tout doit être en SVG inline dans le JSX.
+Aucune image PNG, WebP ou externe.
+Le rendu final doit évoquer une fresque antique magique,
+pas un clip art ou un dessin animé.
+L'ensemble doit rester sombre et sobre — c'est un arrière-plan,
+pas le sujet principal. Le portrait d'HeliFan est au premier plan.
