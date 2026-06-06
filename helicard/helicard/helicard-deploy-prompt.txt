@@ -1,0 +1,320 @@
+PROMPT CLAUDE CODE — GIT + DÉPLOIEMENT VPS NGINX
+=================================================
+
+CONTEXTE
+--------
+Projet : Helicard (Vite + React + TypeScript)
+Repo GitHub : https://github.com/Spiritzen/HeliFan.git
+Objectif : rendre la page visible publiquement via un VPS avec Nginx
+
+JE NE VEUX PAS QUE TU DÉPLOIES SUR LE VPS.
+Je veux que tu prépares tout localement pour que je puisse
+le faire moi-même étape par étape.
+
+
+ÉTAPE 1 — PRÉPARER LE PROJET POUR LA PRODUCTION
+------------------------------------------------
+
+1.1 Vérifier que vite.config.ts est correct pour un déploiement
+    à la racine d'un domaine (pas dans un sous-dossier) :
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  base: '/',   // racine du domaine
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+  }
+})
+```
+
+Si le site doit être dans un sous-dossier (ex: mondomaine.com/helicard/)
+alors changer base: '/' par base: '/helicard/'
+
+1.2 Vérifier index.html :
+- Le title doit être : <title>Helicard — HeliFan</title>
+- Ajouter les meta tags suivants si absents :
+
+```html
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="HeliFan — La Gardienne des Chemins. Carte fantasy interactive Helistory." />
+<meta property="og:title" content="Helicard — HeliFan" />
+<meta property="og:description" content="Créature Légendaire. Curiosité infinie. Amour rayonnant." />
+<meta property="og:type" content="website" />
+```
+
+1.3 Créer un fichier .gitignore à la racine si absent :
+
+```
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+```
+
+1.4 Lancer le build pour vérifier que tout compile :
+```bash
+npm run build
+```
+Corriger toute erreur TypeScript avant de continuer.
+Le dossier dist/ doit être généré sans erreur.
+
+
+ÉTAPE 2 — INITIALISER GIT ET POUSSER SUR GITHUB
+-------------------------------------------------
+
+Exécuter dans le terminal à la racine du projet helicard/ :
+
+```bash
+git init
+git add .
+git commit -m "feat: carte fantasy HeliFan - version initiale"
+git branch -M main
+git remote add origin https://github.com/Spiritzen/HeliFan.git
+git push -u origin main
+```
+
+Si le remote existe déjà :
+```bash
+git remote set-url origin https://github.com/Spiritzen/HeliFan.git
+git push -u origin main
+```
+
+Ne pas committer le dossier dist/ (il est dans .gitignore).
+Le build se fera sur le VPS ou via GitHub Actions.
+
+
+ÉTAPE 3 — CRÉER LE FICHIER GITHUB ACTIONS (CI/CD optionnel)
+------------------------------------------------------------
+
+Créer le fichier : .github/workflows/deploy.yml
+
+```yaml
+name: Build & Deploy HeliFan
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+```
+
+Ce workflow build le projet à chaque push sur main
+et conserve le dist/ comme artifact téléchargeable.
+
+Pour un déploiement automatique par SSH sur VPS,
+ajouter une étape deploy (à configurer avec les secrets GitHub).
+
+
+ÉTAPE 4 — CONFIGURATION NGINX SUR LE VPS
+-----------------------------------------
+(À faire manuellement sur le VPS — ne pas exécuter ici)
+
+Ces commandes sont à copier-coller sur le VPS en SSH.
+
+4.1 Créer le dossier de déploiement :
+```bash
+sudo mkdir -p /var/www/helicard
+sudo chown $USER:$USER /var/www/helicard
+```
+
+4.2 Transférer le build depuis ta machine locale :
+```bash
+# Depuis ta machine Windows (dans PowerShell ou Git Bash)
+scp -r D:\CreaSite\HeliFan\helicard\dist\* user@TON_IP_VPS:/var/www/helicard/
+```
+
+4.3 Configurer Nginx — créer le fichier de site :
+```bash
+sudo nano /etc/nginx/sites-available/helicard
+```
+
+Contenu du fichier Nginx :
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name TON_DOMAINE.com www.TON_DOMAINE.com;
+
+    root /var/www/helicard;
+    index index.html;
+
+    # Gzip compression
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml image/svg+xml;
+    gzip_min_length 1000;
+
+    # Cache assets statiques
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Cache images publiques
+    location /cards/ {
+        expires 30d;
+        add_header Cache-Control "public";
+    }
+
+    # SPA fallback — CRITIQUE pour React Router
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Sécurité headers
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+    add_header Referrer-Policy "strict-origin-when-cross-origin";
+}
+```
+
+4.4 Activer le site :
+```bash
+sudo ln -s /etc/nginx/sites-available/helicard /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+4.5 HTTPS avec Certbot (SSL gratuit) :
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d TON_DOMAINE.com -d www.TON_DOMAINE.com
+```
+Certbot modifie automatiquement la config Nginx pour le HTTPS.
+
+
+ÉTAPE 5 — SCRIPT DE DÉPLOIEMENT LOCAL (facultatif)
+---------------------------------------------------
+
+Créer un fichier deploy.sh à la racine du projet :
+
+```bash
+#!/bin/bash
+# deploy.sh — Build et déploiement sur VPS
+
+VPS_USER="ton_user"
+VPS_IP="TON_IP_VPS"
+VPS_PATH="/var/www/helicard"
+
+echo "🔨 Build en cours..."
+npm run build
+
+if [ $? -ne 0 ]; then
+  echo "❌ Build échoué. Déploiement annulé."
+  exit 1
+fi
+
+echo "🚀 Déploiement sur $VPS_IP..."
+rsync -avz --delete dist/ $VPS_USER@$VPS_IP:$VPS_PATH/
+
+echo "✅ Déploiement terminé !"
+echo "🌐 https://TON_DOMAINE.com"
+```
+
+Rendre le script exécutable (sur Linux/Mac) :
+```bash
+chmod +x deploy.sh
+```
+
+Sur Windows, utiliser Git Bash pour exécuter :
+```bash
+bash deploy.sh
+```
+
+
+STRUCTURE FINALE DU PROJET APRÈS CES ÉTAPES
+--------------------------------------------
+
+helicard/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+├── public/
+│   └── cards/
+│       └── future-choice/
+│           └── character.png    ← portrait HeliFan
+├── src/
+│   └── components/
+│       └── interactive-card/
+│           ├── InteractiveFantasyCard.tsx
+│           ├── InteractiveFantasyCard.css
+│           ├── CardModal.tsx
+│           ├── CardModal.css
+│           ├── CardParticles.tsx
+│           ├── CardBack.tsx
+│           ├── CardChoices.tsx
+│           ├── CardBackground.tsx
+│           ├── useCardTilt.ts
+│           ├── types.ts
+│           └── cardData.ts
+├── .gitignore
+├── deploy.sh
+├── index.html
+├── vite.config.ts
+├── package.json
+└── tsconfig.json
+
+
+CHECKLIST AVANT LE PREMIER PUSH
+---------------------------------
+[ ] npm run build → aucune erreur
+[ ] Le dossier dist/ est bien généré
+[ ] .gitignore contient node_modules/ et dist/
+[ ] character.png est dans public/cards/future-choice/
+[ ] vite.config.ts a base: '/' configuré
+[ ] index.html a le bon <title> et les meta OG
+[ ] Le repo GitHub https://github.com/Spiritzen/HeliFan.git est vide ou prêt
+
+
+RÉSUMÉ DES COMMANDES À EXÉCUTER DANS L'ORDRE
+---------------------------------------------
+
+# 1. Vérifier le build
+npm run build
+
+# 2. Init git et push
+git init
+git add .
+git commit -m "feat: carte fantasy HeliFan - version initiale"
+git branch -M main
+git remote add origin https://github.com/Spiritzen/HeliFan.git
+git push -u origin main
+
+# 3. Sur le VPS (en SSH) — copier le dist et configurer Nginx
+# (voir étapes 4.1 à 4.5 ci-dessus)
+
+# 4. Pour les mises à jour futures (depuis ta machine)
+npm run build
+bash deploy.sh

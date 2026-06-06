@@ -1,0 +1,84 @@
+PROMPT CLAUDE CODE — FIX PORTRAIT REMPLIT LA ZONE
+==================================================
+
+PROBLÈME
+--------
+Le portrait est trop petit avec object-fit: contain.
+Il y a du vide autour du personnage.
+L'image doit REMPLIR toute la zone illustration de la carte
+comme une vraie carte Magic : le personnage occupe 100% de l'espace.
+
+L'image source HeliCard.png :
+- Format : 1920x1080 (paysage)
+- Visage : centré horizontalement, dans le tiers supérieur
+- Cartes tenues : dans le tiers inférieur
+- Fond : transparent (RGBA)
+
+OBJECTIF
+--------
+Afficher le personnage de façon à ce que :
+- Il remplisse toute la largeur de la zone illustration
+- Le visage soit visible en haut
+- Les cartes soient visibles en bas
+- Pas d'espace vide
+
+CORRECTION CSS
+--------------
+Chercher dans tous les .tsx et .css où .layer-character img est stylisé.
+
+REMPLACER PAR :
+
+  .layer-character img {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140%;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(200, 100, 0, 0.4));
+  }
+
+  .layer-character {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    display: block;
+  }
+
+EXPLICATION
+-----------
+- width: 140% → agrandit l'image au-delà de la zone pour qu'elle remplisse
+- bottom: 0 → ancre l'image par le bas (les cartes touchent le bas de la zone)
+- left: 50% + translateX(-50%) → centre horizontalement
+- height: auto → conserve le ratio de l'image originale
+- overflow: hidden sur le parent → cache ce qui dépasse
+
+Si 140% est trop grand ou trop petit, ajuster :
+  120% → personnage plus petit, plus de fond visible
+  150% → personnage encore plus grand, plus de zoom
+  140% → valeur recommandée pour cette image 1920x1080
+
+PUIS DANS CardModal.css pour la modale :
+
+  .modal-portrait {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 130%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .modal-card-visual {
+    position: relative;
+    overflow: hidden;
+  }
+
+COMMIT
+------
+  npm run build
+  git add .
+  git commit -m "fix: portrait remplit la zone illustration - width 140%"
+  git push origin main

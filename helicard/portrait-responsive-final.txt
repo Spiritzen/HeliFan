@@ -1,0 +1,75 @@
+PROMPT CLAUDE CODE — CENTRAGE RESPONSIVE PORTRAIT FINAL
+========================================================
+
+NE PAS TOUCHER À LA MODALE.
+NE PAS TOUCHER AU WORKFLOW.
+NE PAS TOUCHER À VITE.CONFIG.
+
+PROBLÈME
+--------
+Le portrait est décalé à gauche.
+L'image HeliCard.png (1920x1080) a du vide transparent à gauche.
+Le personnage est centré entre x=600 et x=1400 sur l'image.
+
+DEUX FICHIERS UNIQUEMENT
+-------------------------
+
+FICHIER 1 — CSS du composant carte (InteractiveFantasyCard.css ou InteractiveCard.css)
+
+Remplacer .layer-character et .layer-character img par :
+
+.layer-character {
+  position: absolute;
+  top: 28px;
+  left: 8px;
+  right: 8px;
+  bottom: 38%;
+  overflow: hidden;
+}
+
+.layer-character img {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+  width: auto;
+  min-width: 100%;
+  object-fit: cover;
+  object-position: 58% center;
+  filter: drop-shadow(0 0 20px rgba(200, 100, 0, 0.4));
+}
+
+FICHIER 2 — App.css ou index.css
+Ajouter si absent :
+
+* {
+  box-sizing: border-box;
+}
+
+.heli-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.card-wrapper {
+  width: clamp(280px, 80vw, 380px);
+  aspect-ratio: 2 / 3;
+}
+
+VÉRIFIER EN LOCAL D'ABORD
+--------------------------
+npm run dev
+Ouvrir localhost:5173
+Tester en desktop ET en responsive mobile (F12 → toggle device)
+Le visage ET les cartes doivent être visibles.
+
+SI C'EST BON EN LOCAL SEULEMENT :
+npm run build
+git add .
+git commit -m "fix: portrait centré responsive - visage et cartes visibles"
+git push origin main

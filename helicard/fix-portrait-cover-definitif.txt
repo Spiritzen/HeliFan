@@ -1,0 +1,99 @@
+PROMPT CLAUDE CODE — FIX DÉFINITIF PORTRAIT CARTE + MODALE
+===========================================================
+
+LIRE AVANT TOUT
+---------------
+L'image HeliCard.png fait 1920x1080.
+Le personnage est dans la MOITIÉ DROITE de l'image.
+La moitié gauche est VIDE (transparent).
+Donc centrer sur l'image entière = montrer le vide à gauche.
+Il faut recadrer SUR LE PERSONNAGE.
+
+SOLUTION : object-fit cover + object-position pour cadrer sur le personnage.
+
+AFFICHER D'ABORD le contenu exact de ces fichiers avant toute modification :
+- src/components/interactive-card/InteractiveFantasyCard.css
+- src/components/interactive-card/CardModal.css
+
+PUIS appliquer ces corrections :
+
+═══════════════════════════════════════════════════
+CORRECTION 1 — InteractiveFantasyCard.css (ou InteractiveCard.css)
+═══════════════════════════════════════════════════
+
+Trouver et remplacer le bloc .layer-character et .layer-character img :
+
+.layer-character {
+  position: absolute;
+  top: 30px;
+  left: 6px;
+  right: 6px;
+  bottom: 36%;
+  overflow: hidden;
+  background: transparent;
+}
+
+.layer-character img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% center;
+  filter: drop-shadow(0 0 20px rgba(200, 100, 0, 0.4));
+}
+
+═══════════════════════════════════════════════════
+CORRECTION 2 — CardModal.css
+═══════════════════════════════════════════════════
+
+Trouver et remplacer .modal-card-visual et .modal-portrait :
+
+.modal-card-visual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #8B6914;
+  box-shadow:
+    0 0 0 1px #3a2200,
+    0 0 40px rgba(180, 100, 0, 0.2),
+    inset 0 0 30px rgba(0,0,0,0.6);
+  flex-shrink: 0;
+}
+
+.modal-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% center;
+  display: block;
+}
+
+═══════════════════════════════════════════════════
+POURQUOI object-position: 70% center
+═══════════════════════════════════════════════════
+70% horizontal = cadre sur la partie droite de l'image
+               où se trouve le personnage
+               (loin du vide transparent à gauche)
+center vertical = centre verticalement (visage en haut,
+                  cartes en bas naturellement avec cover)
+
+═══════════════════════════════════════════════════
+VÉRIFICATION LOCALE AVANT PUSH
+═══════════════════════════════════════════════════
+npm run dev
+
+Vérifier sur http://localhost:5173 :
+✅ Carte : visage ET cartes visibles, pas de vide à gauche
+✅ Cliquer sur la carte → modale → même résultat
+✅ F12 → mobile 375px → toujours centré
+
+Si encore trop à gauche → changer 70% en 75%
+Si trop à droite → changer 70% en 65%
+Tester en local jusqu'à ce que ce soit parfait.
+
+SEULEMENT QUAND C'EST BON EN LOCAL :
+npm run build
+git add .
+git commit -m "fix: portrait cover 70% - carte et modale"
+git push origin main

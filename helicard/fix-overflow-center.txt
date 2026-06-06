@@ -1,0 +1,24 @@
+PROMPT CLAUDE CODE — FIX OVERFLOW ET CENTRAGE
+==============================================
+
+PROBLÈME : la carte semble décalée à gauche sur mobile.
+Cause probable : un élément déborde (overflow-x) et crée
+un faux décalage visuel.
+
+UNE SEULE ACTION : ajouter ces 3 lignes dans src/index.css
+
+html, body {
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+git add .
+git commit -m "fix: overflow-x hidden + root centré"
+git push origin main

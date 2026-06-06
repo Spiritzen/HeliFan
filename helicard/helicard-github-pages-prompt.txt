@@ -1,0 +1,135 @@
+PROMPT CLAUDE CODE — DÉPLOIEMENT GITHUB PAGES
+==============================================
+
+CONTEXTE
+--------
+Projet : Vite + React + TypeScript
+Repo : https://github.com/Spiritzen/HeliFan.git
+Objectif : page visible publiquement sur
+https://spiritzen.github.io/HeliFan/
+sans VPS, sans serveur, gratuitement via GitHub Pages.
+
+ÉTAPE 1 — MODIFIER vite.config.ts
+----------------------------------
+Changer base pour correspondre au nom du repo GitHub :
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  base: '/HeliFan/',   // NOM EXACT du repo GitHub (sensible à la casse)
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+  }
+})
+```
+
+ÉTAPE 2 — REMPLACER .github/workflows/deploy.yml
+-------------------------------------------------
+Supprimer le contenu actuel et écrire ce fichier exactement :
+
+```yaml
+name: Deploy HeliFan to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+ÉTAPE 3 — REBUILD ET VÉRIFIER
+------------------------------
+```bash
+npm run build
+```
+Vérifier que dans dist/index.html les chemins commencent par /HeliFan/
+Exemple : src="/HeliFan/assets/index-xxx.js"
+
+ÉTAPE 4 — COMMIT ET PUSH
+-------------------------
+```bash
+git add .
+git commit -m "ci: deploy to GitHub Pages"
+git push origin main
+```
+
+ÉTAPE 5 — ACTIVER GITHUB PAGES (À FAIRE SUR GITHUB.COM)
+--------------------------------------------------------
+Après le push, aller sur :
+https://github.com/Spiritzen/HeliFan/settings/pages
+
+Configurer ainsi :
+  Source       → GitHub Actions  (pas "Deploy from a branch")
+  Branch       → laisser vide (c'est GitHub Actions qui gère)
+
+Cliquer Save.
+
+Puis aller dans l'onglet Actions du repo pour voir le workflow tourner.
+URL finale : https://spiritzen.github.io/HeliFan/
+
+VÉRIFICATIONS
+-------------
+1. npm run build → aucune erreur
+2. dist/index.html contient bien /HeliFan/ dans les chemins
+3. Le push déclenche bien le workflow dans l'onglet Actions GitHub
+4. Après 2-3 minutes → https://spiritzen.github.io/HeliFan/ est accessible
+5. Le portrait character.png s'affiche correctement
+6. L'effet tilt 3D fonctionne sur la carte
+
+NOTE IMPORTANTE
+---------------
+Si plus tard tu passes sur un vrai domaine (ex: helifan.fr),
+changer base: '/HeliFan/' par base: '/' dans vite.config.ts
+et mettre à jour le workflow Nginx du VPS.

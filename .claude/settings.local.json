@@ -4,7 +4,17 @@
       "Bash(npm run *)",
       "Bash(Get-Content \"C:\\\\Users\\\\Admin\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--CreaSite-HeliFan\\\\86398214-b155-4448-8bbe-4e8455e70a1d\\\\tasks\\\\b680e69e2.output\" -Tail 30)",
       "Bash(npx tsc *)",
-      "Bash(start *)"
+      "Bash(start *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'feat: carte fantasy HeliFan - version initiale *)",
+      "Bash(git branch *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Bash(git checkout *)",
+      "Bash(git commit *)",
+      "Bash(git stash *)"
     ]
   }
 }

@@ -1,19 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
 
-.app-container {
-  width: 100%;
-  min-height: 100vh;
+.app-stage {
+  min-height: 100svh;
   background: radial-gradient(ellipse at 50% 35%, #120828 0%, #06010f 55%, #000005 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
+  padding: 40px 20px 60px;
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
 }
 
+/* Soft ambient light behind card */
 .stage-ambient {
   position: absolute;
   top: 50%;
@@ -34,13 +34,12 @@
 
 .stage-header {
   text-align: center;
-  margin-bottom: 32px;
-  flex-shrink: 0;
+  margin-bottom: 40px;
 }
 
 .stage-title {
   font-family: 'Cinzel', 'Palatino Linotype', serif;
-  font-size: clamp(24px, 5vw, 44px);
+  font-size: clamp(28px, 5vw, 44px);
   font-weight: 700;
   color: #c9a84c;
   letter-spacing: 0.12em;
@@ -69,5 +68,4 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }

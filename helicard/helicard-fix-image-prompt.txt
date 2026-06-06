@@ -1,0 +1,126 @@
+PROMPT CLAUDE CODE — CORRECTION IMAGE GITHUB PAGES
+====================================================
+
+PROBLÈME
+--------
+La carte est en ligne sur https://spiritzen.github.io/HeliFan/
+mais le portrait character.png ne s'affiche pas.
+
+Cause : Vite remplace les chemins statiques avec base: '/HeliFan/'
+SAUF les chemins écrits en dur dans le JSX/TSX sous forme de string.
+
+Les images référencées comme src="/cards/..." ne deviennent pas
+automatiquement src="/HeliFan/cards/..." au build.
+
+SOLUTION
+--------
+Utiliser la variable Vite `import.meta.env.BASE_URL` pour construire
+les chemins d'images dynamiquement.
+
+BASE_URL vaut '/' en développement et '/HeliFan/' en production.
+
+
+CORRECTIONS À FAIRE
+--------------------
+
+1. Dans TOUS les fichiers TSX qui contiennent des chemins d'image
+   commençant par "/cards/..." ou "/public/..." :
+
+   AVANT :
+     src="/cards/future-choice/character.png"
+
+   APRÈS :
+     src={`${import.meta.env.BASE_URL}cards/future-choice/character.png`}
+
+   NOTE : BASE_URL se termine toujours par '/', donc ne pas mettre
+   de slash au début du chemin :
+     ✅  `${import.meta.env.BASE_URL}cards/future-choice/character.png`
+     ❌  `${import.meta.env.BASE_URL}/cards/future-choice/character.png`
+
+
+2. Dans cardData.ts, si les chemins d'images sont définis en dur :
+
+   AVANT :
+     src: '/cards/future-choice/character.png'
+
+   APRÈS :
+     src: `${import.meta.env.BASE_URL}cards/future-choice/character.png`
+
+   Si cardData.ts est un fichier .ts sans JSX, utiliser une fonction :
+
+   OPTION A — Modifier cardData.ts pour accepter BASE_URL :
+   ```ts
+   const base = import.meta.env.BASE_URL;
+
+   export const futureChoiceCard: FantasyCard = {
+     layers: [
+       {
+         id: 'character',
+         src: `${base}cards/future-choice/character.png`,
+         ...
+       }
+     ]
+   };
+   ```
+
+   OPTION B — Passer BASE_URL comme prop depuis App.tsx :
+   ```tsx
+   // App.tsx
+   const base = import.meta.env.BASE_URL;
+   <InteractiveFantasyCard card={futureChoiceCard} base={base} />
+   ```
+   Puis utiliser `base` dans le composant pour construire les src.
+
+
+3. Dans CardModal.tsx si l'image est aussi référencée :
+
+   AVANT :
+     src="/cards/future-choice/character.png"
+
+   APRÈS :
+     src={`${import.meta.env.BASE_URL}cards/future-choice/character.png`}
+
+
+4. Chercher dans TOUS les fichiers .tsx et .ts la présence de :
+   - "/cards/"
+   - "/public/"
+   - src="/"
+   Et appliquer la correction partout.
+
+   Commande de recherche :
+   grep -r '"/cards/' src/
+   grep -r "'/cards/" src/
+
+
+VÉRIFICATION LOCALE
+--------------------
+Pour simuler GitHub Pages en local :
+
+```bash
+npm run build
+npm run preview
+```
+
+`npm run preview` sert le dossier dist/ avec le bon base URL.
+Ouvrir http://localhost:4173/HeliFan/ et vérifier que l'image apparaît.
+
+
+COMMIT ET PUSH
+--------------
+```bash
+git add .
+git commit -m "fix: chemins images compatibles GitHub Pages BASE_URL"
+git push origin main
+```
+
+Le workflow GitHub Actions va se déclencher automatiquement.
+Attendre 2-3 minutes puis vérifier :
+https://spiritzen.github.io/HeliFan/
+
+VÉRIFICATIONS FINALES
+---------------------
+1. npm run build → aucune erreur
+2. npm run preview → ouvrir http://localhost:4173/HeliFan/
+3. Le portrait HeliFan s'affiche dans la carte ET dans la modale
+4. git push → workflow Actions se termine en vert
+5. https://spiritzen.github.io/HeliFan/ → portrait visible

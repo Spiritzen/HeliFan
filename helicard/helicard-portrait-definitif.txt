@@ -1,0 +1,100 @@
+PROMPT CLAUDE CODE — FIX DÉFINITIF PORTRAIT HELIFAN
+====================================================
+
+CONTEXTE IMAGE
+--------------
+HeliCard.png : 1920x1080 pixels, format PAYSAGE, fond transparent
+- Le personnage occupe la moitié droite de l'image (x: 600 à 1920)
+- Le visage est en haut (y: 0 à 400)
+- Les cartes sont en bas (y: 500 à 1080)
+- À gauche de l'image : espace vide (blanc/transparent)
+
+OBJECTIF
+--------
+Afficher le personnage dans la carte ET dans la modale de façon à voir :
+✅ Le visage d'HeliFan
+✅ Les cartes qu'elle tient
+✅ Pas d'espace vide autour
+✅ Image centrée sur le personnage (pas sur le vide de gauche)
+
+SOLUTION TECHNIQUE
+------------------
+Utiliser object-fit: cover + object-position précis
+pour cadrer sur la partie droite de l'image qui contient le personnage.
+
+CORRECTION 1 — image dans la carte (InteractiveFantasyCard.css ou InteractiveCard.css)
+---------------------------------------------------------------------------------------
+Trouver le sélecteur qui cible l'image du portrait.
+Le remplacer EXACTEMENT par :
+
+.layer-character {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.layer-character img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 65% 20%;
+  filter: drop-shadow(0 0 20px rgba(200, 100, 0, 0.4));
+}
+
+EXPLICATION object-position: 65% 20%
+  65% horizontal → décale vers la droite pour centrer sur le personnage
+                   (évite le vide transparent à gauche)
+  20% vertical   → cadre sur le haut du personnage (visage visible)
+                   sans couper les cartes en bas
+
+CORRECTION 2 — image dans la modale (CardModal.css)
+----------------------------------------------------
+Trouver .modal-portrait et .modal-card-visual.
+Les remplacer EXACTEMENT par :
+
+.modal-card-visual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #8B6914;
+  box-shadow:
+    0 0 0 1px #3a2200,
+    0 0 40px rgba(180, 100, 0, 0.2),
+    inset 0 0 30px rgba(0,0,0,0.6);
+}
+
+.modal-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 65% 20%;
+}
+
+NE PAS CHANGER autre chose.
+NE PAS TOUCHER aux autres composants.
+NE PAS MODIFIER vite.config.ts.
+NE PAS MODIFIER le workflow.
+
+UNIQUEMENT ces deux blocs CSS.
+
+VÉRIFICATION AVANT PUSH
+------------------------
+npm run dev
+Ouvrir http://localhost:5173
+→ La carte doit montrer le visage ET les cartes tenues par HeliFan
+→ Cliquer sur la carte → modale → même résultat
+
+Si object-position: 65% 20% n'est pas parfait, ajuster UNIQUEMENT ces valeurs :
+  Premier chiffre (horizontal) : augmenter si trop à gauche, diminuer si trop à droite
+  Deuxième chiffre (vertical)  : augmenter si trop en haut, diminuer si trop en bas
+
+PUIS SEULEMENT QUAND C'EST CORRECT EN LOCAL :
+npm run build
+git add .
+git commit -m "fix: portrait cadrage définitif 65% 20%"
+git push origin main

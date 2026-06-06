@@ -1,0 +1,53 @@
+PROMPT CLAUDE CODE — AGRANDIR LA ZONE ILLUSTRATION
+===================================================
+
+PROBLÈME RÉEL
+-------------
+La zone illustration (.layer-character) est trop petite (height: 60%).
+L'image HeliCard.png fait 1920x1080 (paysage).
+Quand on met object-fit: contain, l'image apparaît minuscule
+parce que la zone est trop petite.
+
+NE PAS TOUCHER À LA MODALE.
+
+SOLUTION
+--------
+Agrandir la zone illustration pour qu'elle occupe
+toute la hauteur de la carte AU-DESSUS de la zone texte.
+La zone texte commence à environ 65% de la hauteur de la carte.
+
+MODIFIER UNIQUEMENT ces deux blocs CSS dans le fichier
+InteractiveFantasyCard.css ou InteractiveCard.css :
+
+.layer-character {
+  position: absolute;
+  top: 28px;
+  left: 8px;
+  right: 8px;
+  bottom: 38%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.layer-character img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  filter: drop-shadow(0 0 20px rgba(200, 100, 0, 0.4));
+}
+
+EXPLICATION
+-----------
+top: 28px     = juste sous la barre de titre de la carte
+left/right: 8px = respecte les bordures intérieures
+bottom: 38%   = s'arrête avant la zone texte du bas
+               (ajuster entre 35% et 42% si nécessaire)
+
+PUIS :
+npm run build
+git add .
+git commit -m "fix: zone illustration agrandie - image visible"
+git push origin main

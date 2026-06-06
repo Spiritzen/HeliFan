@@ -1,0 +1,115 @@
+PROMPT CLAUDE CODE — PERSONNALISATION CARTE HELIFAN
+====================================================
+
+CONTEXTE
+--------
+La carte fantasy interactive tourne sur localhost:5173.
+Je veux personnaliser tous les textes et stats pour correspondre
+au personnage réel : HeliFan, créatrice de contenu.
+
+PERSONNAGE : HeliFan
+--------------------
+- Nom         : HeliFan
+- Titre       : La Gardienne des Chemins
+- Type        : Créature Légendaire — Humaine Prophétesse
+- Taille      : 1m56 (petit être, mais présence immense)
+- Énergie     : Pleine d'amour, douce et courageuse comme un panda
+- Force       : Sa curiosité insatiable
+- Talent      : L'amour (donner, inspirer, connecter)
+- Univers     : Helistory — cartes éducatives et fantasy
+- Rareté      : Légendaire
+
+MODIFICATIONS À FAIRE
+---------------------
+
+1. Dans cardData.ts (ou le fichier équivalent qui contient les données de la carte) :
+
+  title           → "HeliFan"
+  subtitle        → "La Gardienne des Chemins"
+  arcane          → "Héroïne Légendaire"
+  rarity          → "legendary"
+
+  description →
+    "Petite en taille, immense en lumière. HeliFan avance avec la
+     douceur d'un panda et le courage d'une exploratrice. Sa curiosité
+     est sa boussole. Son amour, son pouvoir."
+
+  card type line (si présent, style Magic) →
+    "Créature Légendaire — Humaine Prophétesse"
+
+  flavor text (texte italique en bas, style Magic) →
+    "« Chaque chemin commence par une question. Elle, elle ose la poser. »"
+
+  stats (style Magic, coin bas droit) →
+    "1/56"  ← clin d'oeil à sa taille (1m56)
+
+  brand / copyright →
+    "Helistory © — HeliFan"
+
+  card number →
+    N°01
+
+  abilities / capacités (style Magic, texte à puces) →
+    • Curiosité infinie : Au début de chaque tour, révèle la prochaine carte du destin.
+    • Amour rayonnant : Les alliés adjacents gagnent +1 en courage.
+    • Pas de panda : Insaisissable. Ne peut pas être bloquée par la peur.
+
+2. Dans les choix narratifs (CardChoices ou cardData choices[]) :
+
+  Choix 1 :
+    label   → "Apprendre"
+    emoji   → "📚"
+    color   → "#E8C06A"
+    message → "La curiosité est ton armure. Chaque question que tu poses
+               ouvre une porte que personne d'autre n'aurait vue."
+
+  Choix 2 :
+    label   → "Aimer"
+    emoji   → "🐼"
+    color   → "#7EC8A0"
+    message → "Ton pouvoir n'est pas dans ta taille, mais dans
+               la chaleur que tu répands. L'amour que tu donnes
+               revient toujours, amplifié."
+
+  Choix 3 :
+    label   → "Créer"
+    emoji   → "✨"
+    color   → "#C080E0"
+    message → "Tu n'as pas besoin de permission pour créer quelque chose
+               de beau. HeliFan a choisi ce chemin. Il t'appartient aussi."
+
+3. Couleurs du thème (theme{} dans cardData) :
+
+  primary   → "#E8C06A"   (or chaud)
+  secondary → "#8B6914"   (bronze)
+  glow      → "rgba(126, 200, 160, 0.25)"  (lueur verte douce, couleur panda)
+
+4. Dans le composant CardBack.tsx (verso de la carte) :
+
+  Titre verso     → "Helistory"
+  Sous-titre      → "HeliFan — N°01"
+  Texte mystique  → "La curiosité est le début de tout."
+
+5. Dans le titre de la page (index.html ou App.tsx) :
+
+  <title>Helicard — HeliFan</title>
+
+STYLE DES TEXTES — RÈGLES À RESPECTER
+--------------------------------------
+- Le titre principal "HeliFan" : font Cinzel Decorative, couleur or #E8C06A
+- La ligne de type "Créature Légendaire" : petites caps, fond brun sombre, bordure or
+- Les capacités : puces simples (•), font IM Fell English, italic pour les noms
+- Le flavor text : italic, couleur #A07840, séparé par une ligne fine
+- Les stats "1/56" : coin bas droit, encadré, font Cinzel bold, taille 13px
+- Le texte de choix : toujours centré, lisible, jamais tronqué
+
+VÉRIFICATIONS FINALES
+---------------------
+1. npm run dev — pas d'erreur TypeScript
+2. La carte affiche bien "HeliFan" en titre doré
+3. Les 3 choix sont : Apprendre / Aimer / Créer
+4. Les stats affichent "1/56" en bas à droite
+5. Le flavor text est en italique sous les capacités
+6. Le verso affiche "HeliFan — N°01"
+7. Aucun texte n'est tronqué ou illisible
+8. npm run build — aucune erreur

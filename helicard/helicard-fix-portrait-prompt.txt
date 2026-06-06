@@ -1,0 +1,105 @@
+PROMPT CLAUDE CODE — CORRECTION CENTRAGE PORTRAIT
+==================================================
+
+PROBLÈME
+--------
+Le portrait dans la carte affiche le bas de l'image (les cartes)
+au lieu du visage d'HeliFan qui est en haut de l'image.
+
+L'image HeliCard.png fait 1920x1080 en format paysage.
+Le visage est dans la moitié haute de l'image (y=0 à y=540).
+La carte a un format portrait 2:3, donc elle coupe l'image.
+
+FICHIERS À CORRIGER
+--------------------
+Chercher dans TOUS les fichiers .tsx et .css les propriétés
+qui contrôlent l'affichage du portrait :
+
+  object-fit: cover
+  object-position
+  background-position
+
+Et partout où l'image character.png est affichée.
+
+CORRECTIONS CSS
+---------------
+
+1. Dans InteractiveFantasyCard.css (ou InteractiveCard.css)
+   trouver la règle pour l'image du portrait :
+
+AVANT (probablement) :
+  .layer-character img {
+    object-fit: cover;
+    object-position: center bottom;
+  }
+  ou
+  .layer-character img {
+    object-fit: contain;
+    object-position: center bottom;
+  }
+
+APRÈS :
+  .layer-character img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 15%;
+  }
+
+  Le "15%" positionne le point focal vers le haut de l'image
+  pour centrer sur le visage plutôt que sur les cartes.
+
+2. Dans CardModal.css pour le portrait dans la modale :
+
+AVANT :
+  .modal-portrait {
+    object-position: center top;
+  }
+  ou center, ou center bottom
+
+APRÈS :
+  .modal-portrait {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+  }
+
+3. Si l'image est en background-image CSS au lieu d'un <img> :
+
+AVANT :
+  background-position: center bottom;
+  ou background-position: center;
+
+APRÈS :
+  background-position: center 15%;
+  background-size: cover;
+
+AJUSTEMENT FIN
+--------------
+Si après correction le visage est toujours trop haut ou trop bas,
+ajuster la valeur en % :
+
+  object-position: center 10%;   ← remonte encore le cadrage
+  object-position: center 15%;   ← valeur recommandée pour cette image
+  object-position: center 20%;   ← descend légèrement
+  object-position: center 25%;   ← descend encore
+
+L'objectif est que le visage (yeux + sourire) soit centré
+dans la zone illustration de la carte.
+
+VÉRIFICATION
+------------
+```bash
+npm run dev
+```
+Ouvrir http://localhost:5173
+Le visage d'HeliFan doit être visible et centré dans la carte.
+Les cartes qu'elle tient doivent apparaître en bas de la zone illustration.
+
+Puis :
+```bash
+git add .
+git commit -m "fix: centrage portrait HeliFan object-position"
+git push origin main
+```

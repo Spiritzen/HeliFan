@@ -1,0 +1,96 @@
+PROMPT CLAUDE CODE — FIX CENTRAGE CARTE ET IMAGE
+=================================================
+
+DEUX PROBLÈMES À RÉGLER :
+1. La carte est collée à gauche sur mobile
+2. L'image ne remplit pas bien son cadre
+
+ÉTAPE 1 — AFFICHER CES FICHIERS AVANT TOUTE MODIFICATION
+---------------------------------------------------------
+cat src/App.tsx
+cat src/App.css
+cat src/index.css
+
+ÉTAPE 2 — CORRIGER App.css ET index.css
+----------------------------------------
+Remplacer le contenu COMPLET de src/App.css par :
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #080300;
+}
+
+.heli-scene {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+Remplacer le contenu COMPLET de src/index.css par :
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #080300; }
+
+ÉTAPE 3 — CORRIGER L'IMAGE
+---------------------------
+Dans le fichier CSS du composant carte
+(InteractiveFantasyCard.css ou InteractiveCard.css)
+remplacer .layer-character et .layer-character img par :
+
+.layer-character {
+  position: absolute;
+  top: 30px;
+  left: 6px;
+  right: 6px;
+  bottom: 36%;
+  overflow: hidden;
+}
+
+.layer-character img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 68% 30%;
+}
+
+ÉTAPE 4 — CORRIGER CardModal.css
+---------------------------------
+Remplacer .modal-portrait par :
+
+.modal-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 68% 30%;
+  display: block;
+}
+
+ÉTAPE 5 — VÉRIFIER EN LOCAL
+-----------------------------
+npm run dev
+
+Sur http://localhost:5173 vérifier :
+✅ Carte centrée sur desktop
+✅ Carte centrée sur mobile (F12 → 375px)
+✅ Visage ET cartes visibles dans l'image
+✅ Modale : même résultat
+
+PUIS :
+npm run build
+git add .
+git commit -m "fix: centrage carte + image cover 68% 30%"
+git push origin main

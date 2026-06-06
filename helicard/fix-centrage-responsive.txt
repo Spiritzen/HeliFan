@@ -1,0 +1,120 @@
+PROMPT CLAUDE CODE — CENTRAGE CARTE RESPONSIVE
+===============================================
+
+NE PAS TOUCHER AU PORTRAIT.
+NE PAS TOUCHER À LA MODALE.
+NE PAS TOUCHER AU WORKFLOW.
+NE PAS TOUCHER À VITE.CONFIG.
+
+OBJECTIF UNIQUE
+---------------
+La carte doit être parfaitement centrée horizontalement et verticalement
+sur TOUS les écrans : desktop, tablette, mobile.
+
+ÉTAPE 1 — LIRE CES FICHIERS AVANT TOUT
+---------------------------------------
+Afficher le contenu exact de :
+  cat src/index.css
+  cat src/App.css  
+  cat src/App.tsx
+  cat src/main.tsx
+
+ÉTAPE 2 — REMPLACER src/index.css EN ENTIER
+--------------------------------------------
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  background: #080300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+ÉTAPE 3 — REMPLACER src/App.css EN ENTIER
+------------------------------------------
+
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #080300;
+  padding: 2rem 1rem;
+}
+
+ÉTAPE 4 — REMPLACER src/App.tsx EN ENTIER
+------------------------------------------
+
+import { InteractiveFantasyCard } from './components/interactive-card/InteractiveFantasyCard';
+import { futureChoiceCard } from './components/interactive-card/cardData';
+import './App.css';
+
+function App() {
+  return (
+    <div className="app-container">
+      <InteractiveFantasyCard card={futureChoiceCard} />
+    </div>
+  );
+}
+
+export default App;
+
+ÉTAPE 5 — DANS LE CSS DU COMPOSANT CARTE
+-----------------------------------------
+Chercher .heli-scene et remplacer par :
+
+.heli-scene {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+Chercher .card-wrapper et s'assurer qu'il contient :
+
+.card-wrapper {
+  width: clamp(260px, 80vw, 360px);
+  aspect-ratio: 2 / 3;
+  position: relative;
+  transform-style: preserve-3d;
+  cursor: pointer;
+}
+
+ÉTAPE 6 — VÉRIFIER EN LOCAL
+-----------------------------
+npm run dev
+
+Ouvrir http://localhost:5173
+F12 → vérifier ces tailles :
+  - 1920px desktop : carte centrée ✅
+  - 768px tablette : carte centrée ✅  
+  - 375px mobile   : carte centrée ✅
+
+SEULEMENT SI CENTRÉ PARTOUT :
+npm run build
+git add .
+git commit -m "fix: centrage carte responsive tous écrans"
+git push origin main
