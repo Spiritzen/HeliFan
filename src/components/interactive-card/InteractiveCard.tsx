@@ -45,7 +45,7 @@ export default function InteractiveCard() {
   const closeModal = useCallback(() => setIsModalOpen(false), [])
 
   return (
-    <>
+    <div className="card-stack">
       <div
         className="card-scene"
         ref={sceneRef}
@@ -134,6 +134,6 @@ export default function InteractiveCard() {
       <p className="card-hint">Cliquer pour explorer</p>
 
       <CardModal isOpen={isModalOpen} onClose={closeModal} />
-    </>
+    </div>
   )
 }

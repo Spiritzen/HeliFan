@@ -787,14 +787,22 @@
 /* ═══════════════════════════════════════
    HINT SOUS LA CARTE
 ═══════════════════════════════════════ */
+.card-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .card-hint {
+  text-align: center;
+  width: 100%;
+  margin-top: 12px;
+  position: static;
   font-family: 'Cinzel', serif;
   font-size: 9px;
   color: #5a3a0a;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  margin: 14px 0 0;
-  text-align: center;
   animation: hintPulse 2.5s ease-in-out infinite;
   user-select: none;
   pointer-events: none;
