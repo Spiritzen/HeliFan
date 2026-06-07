@@ -2,9 +2,14 @@ import { useState, useRef, useCallback } from 'react'
 import CardParticles from './CardParticles'
 import CardBackground from './CardBackground'
 import CardModal from './CardModal'
+import type { FantasyCard } from './cardData'
 import './InteractiveCard.css'
 
-export default function InteractiveCard() {
+interface InteractiveCardProps {
+  card: FantasyCard
+}
+
+export default function InteractiveCard({ card }: InteractiveCardProps) {
   const sceneRef   = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [isHovered,   setIsHovered]   = useState(false)
@@ -45,7 +50,7 @@ export default function InteractiveCard() {
   const closeModal = useCallback(() => setIsModalOpen(false), [])
 
   return (
-    <>
+    <div className="card-stack">
       <div
         className="card-scene"
         ref={sceneRef}
@@ -56,25 +61,35 @@ export default function InteractiveCard() {
         role="button"
         tabIndex={0}
         title="Cliquer pour explorer"
-        aria-label="Voir les détails de la carte HeliFan"
+        aria-label={`Voir les détails de la carte ${card.title}`}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openModal() }}
       >
         <div className="card-wrapper" ref={wrapperRef}>
           <div className="card-inner">
 
             {/* ══════════════ FACE RECTO ══════════════ */}
-            <div className="card-face card-front">
+            <div
+              className="card-face card-front"
+              style={{
+                '--card-primary':         card.theme.primary,
+                '--card-secondary':       card.theme.secondary,
+                '--card-glow':            card.theme.glow,
+                '--card-image-position':  card.theme.imagePosition ?? '68% 30%',
+              } as React.CSSProperties}
+            >
               <div className="card-frame">
 
-                <CardBackground />
+                <CardBackground theme={card.theme} />
 
                 {/* ── En-tête ── */}
                 <div className="card-header">
-                  <span className="card-name">HeliFan</span>
+                  <span className="card-name">{card.title}</span>
                   <div className="card-mana">
-                    <span className="mana mana-gold"  title="Légendaire">★</span>
-                    <span className="mana mana-panda" title="Amour">❤</span>
-                    <span className="mana mana-creat" title="Créativité">✦</span>
+                    {card.mana.map(m => (
+                      <span key={m.className} className={`mana ${m.className}`} title={m.title}>
+                        {m.symbol}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
@@ -82,8 +97,8 @@ export default function InteractiveCard() {
                 <div className="card-art-wrap">
                   <div className="card-art-inner">
                     <img
-                      src={`${import.meta.env.BASE_URL}cards/future-choice/character.png`}
-                      alt="HeliFan"
+                      src={card.imgSrc}
+                      alt={card.imgAlt}
                       className="card-art-img"
                     />
                     <div className="card-art-shadow" />
@@ -93,31 +108,25 @@ export default function InteractiveCard() {
 
                 {/* ── Ligne de type ── */}
                 <div className="card-type-line">
-                  <span>Créature Légendaire — Humaine Prophétesse</span>
+                  <span>{card.typeLine}</span>
                   <span className="rarity-icon">✦</span>
                 </div>
 
                 {/* ── Zone de texte ── */}
                 <div className="card-text-box">
-                  <p className="card-ability">
-                    <em>Curiosité infinie</em> : Au début de chaque tour, révèle la prochaine carte du destin.
-                  </p>
-                  <p className="card-ability">
-                    <em>Amour rayonnant</em> : Les alliés adjacents gagnent +1 en courage.
-                  </p>
-                  <p className="card-ability">
-                    <em>Pas de panda</em> : Insaisissable. Ne peut pas être bloquée par la peur.
-                  </p>
+                  {card.abilities.map(a => (
+                    <p key={a.name} className="card-ability">
+                      <em>{a.name}</em>{a.desc}
+                    </p>
+                  ))}
                   <div className="flavor-divider" />
-                  <p className="card-flavor">
-                    « Chaque chemin commence par une question. Elle, elle ose la poser. »
-                  </p>
+                  <p className="card-flavor">{card.flavor}</p>
                 </div>
 
                 {/* ── Pied de carte ── */}
                 <div className="card-footer">
-                  <span className="card-artist">Helistory © — HeliFan · N°01</span>
-                  <span className="card-pt">1 / 56</span>
+                  <span className="card-artist">{card.footerArtist}</span>
+                  <span className="card-pt">{card.stats}</span>
                 </div>
 
                 <div className="card-inner-border" />
@@ -133,7 +142,7 @@ export default function InteractiveCard() {
 
       <p className="card-hint">Cliquer pour explorer</p>
 
-      <CardModal isOpen={isModalOpen} onClose={closeModal} />
-    </>
+      <CardModal isOpen={isModalOpen} onClose={closeModal} card={card} />
+    </div>
   )
 }

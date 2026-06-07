@@ -3,13 +3,12 @@
 .app-container {
   width: 100%;
   min-height: 100vh;
-  background: radial-gradient(ellipse at 50% 35%, #120828 0%, #06010f 55%, #000005 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: radial-gradient(ellipse at 50% 35%, #120828 0%, #06010f 55%, #000005 100%);
   padding: 2rem 1rem;
-  box-sizing: border-box;
   position: relative;
   overflow: hidden;
 }
@@ -70,4 +69,29 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.card-switcher {
+  display: flex;
+  gap: 10px;
+  margin-top: 1.5rem;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.switcher-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(139, 105, 20, 0.6);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0;
+}
+
+.switcher-dot.active {
+  background: var(--dot-color, #E8C06A);
+  border-color: var(--dot-color, #E8C06A);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--dot-color, #E8C06A) 50%, transparent);
 }

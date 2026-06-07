@@ -1,3 +1,4 @@
+import type { CardTheme } from './cardData'
 import './CardBackground.css'
 
 /* ── Constantes SVG communes ─────────────────────────────────────────── */
@@ -387,16 +388,22 @@ function MosaicLayer() {
 /* ═══════════════════════════════════════════════════════════════════════
    COMPOSANT PRINCIPAL
 ═══════════════════════════════════════════════════════════════════════ */
-export default function CardBackground() {
+export default function CardBackground({ theme }: { theme: CardTheme }) {
+  const glowStyle = {
+    background: `radial-gradient(ellipse 50% 60% at 50% 45%, ${theme.glow.replace(/[\d.]+\)$/, '0.22)')} 0%, transparent 70%)`,
+  }
   return (
-    <div className="card-bg-container">
+    <div
+      className="card-bg-container"
+      style={theme.bgFilter ? { filter: theme.bgFilter } : undefined}
+    >
       <div className="bg-layer bg-sky">     <SkyLayer />     </div>
       <div className="bg-layer bg-meander"> <MeanderLayer /> </div>
       <div className="bg-layer bg-ruins">   <RuinsLayer />   </div>
       <div className="bg-layer bg-vase">    <VaseLayer />    </div>
       <div className="bg-layer bg-neo">     <NeoLayer />     </div>
       <div className="bg-layer bg-mosaic">  <MosaicLayer />  </div>
-      <div className="bg-layer bg-glow" />
+      <div className="bg-layer bg-glow" style={glowStyle} />
       <div className="bg-layer bg-vignette" />
     </div>
   )
