@@ -26,12 +26,15 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: helicard/package-lock.json
 
       - name: Install dependencies
         run: npm ci
+        working-directory: helicard
 
       - name: Build
         run: npm run build
+        working-directory: helicard
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -39,7 +42,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: helicard/dist
 
   deploy:
     environment:
